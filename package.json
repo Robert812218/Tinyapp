@@ -17,8 +17,8 @@
   },
   "homepage": "https://github.com/Robert812218/tinyapp#readme",
   "dependencies": {
+    "ejs": "^3.1.6",
     "express": "^4.17.3"
   },
-  "devDependencies": {},
   "description": ""
 }
