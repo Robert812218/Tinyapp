@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -10,8 +13,26 @@ const urlDatabase = {
   "S152tx": "https://www.tsn.ca",
 };
 
+function generateRandomString(inp) {
+  let check = inp;
+  let potentialChars = "abcdefghij1234567890klmnopqrstuvwxyz1234567890";
+  let str = "";
+  let max = potentialChars.length;
+  
+  while (inp > 0) {
+    let spot = Math.floor(Math.random() * max);
+    str += potentialChars[spot];
+    inp--;
+  }
+  return (check > 0 ? str : "Invalid string length");
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
+});
+
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 app.listen(PORT, () => {
@@ -41,3 +62,9 @@ app.get("/urls/:shortURL", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);
+  res.send("OK");
+});
+
