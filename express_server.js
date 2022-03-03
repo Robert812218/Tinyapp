@@ -62,13 +62,19 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const str = generateRandomString(6);
-  console.log(str);
-  console.log(req.body);
   const { longURL } = req.body;
-  console.log(longURL);
   urlDatabase[str] = longURL;
-  console.log(urlDatabase);
   res.redirect(`/urls/${str}`);
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const tingID = req.params.shortURL;
+  for (const i in urlDatabase) {
+    if (i === tingID) {
+      delete urlDatabase[tingID];
+    }
+  }
+  res.redirect('/urls');
 });
 
 app.listen(PORT, () => {
