@@ -43,6 +43,10 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+app.get('/login', (req, res) => {
+  
+});
+
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
@@ -81,11 +85,17 @@ app.post('/urls/:shortURL', (req, res) => {
   const longID = req.body.url;
 
   urlDatabase[shortID] = longID;
-  // const shortURL = req.param s.shortURL;
+  
   res.redirect('/urls');
 });
 
+app.post('/login', (req, res) => {
+  let loginUser = req.body.loginUser;
+  
+  let loginPass = req.body.loginPass;
 
+  
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
