@@ -2,11 +2,10 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
-// const cookieParser = require("cookie-parser");
+app.use(bodyParser.urlencoded({extended: true}));
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcrypt");
 const { addListener } = require("nodemon");
-app.use(bodyParser.urlencoded({extended: true}));
  
 app.set("view engine", "ejs");
  
@@ -51,13 +50,23 @@ function generateRandomString(inp) {
 };
  
 function getUserByEmail(userEmail, data) {
- for (const i in data) {
-   if (i === userEmail) {
-     return true;
+  for (const i in data) {
+    if (data[i].email === userEmail) {
+      return data[i].email;
+    }
+  }
+  return false;
+ };
+
+ function getUserPassword(userPass, data) {
+   for (const j in data) {
+     if (data[j].password === userPass) {
+       return data[j].password;
+     }
    }
- }
- return false;
-};
+   return false;
+ } 
+  
  
 app.get("/", (req, res) => {
  res.send("Hello!");
@@ -76,6 +85,11 @@ app.get("/hello", (req, res) => {
 });
  
 app.get("/register", (req, res) => {
+  res.render("urls_register");
+ const newUserEmail = req.body.newUser;
+ const newUserPass = req.body.newPass;
+
+
  if (!newUserEmail || !newUserPass) {
    res.status(400).send("Invalid email and/or password.");
  } else if (checkUserByEmail(newUserEmail, urlDatabase)) {
@@ -85,13 +99,13 @@ app.get("/register", (req, res) => {
      user: users[req.session.userID],
    }
    res.render("urls_register");
- }
+  }
  })
  
 app.get('/login', (req, res) => {
  let userCheck = req.session.userID;
  const templateVars = { urls: urlDatabase };
- res.render("urls_login", templateVars);
+ res.render("urls_login");
 });
  
 app.get("/urls", (req, res) => {
@@ -138,6 +152,7 @@ app.post('/urls/:shortURL', (req, res) => {
 app.post('/register', (req, res) => {
  const newUserEmail = req.body.newUser;
  const newUserPass = req.body.newPass;
+
  let userID = generateRandomString(6);
   if (!newEmail || !newPassword) {
    res.status(400).send("Enter a valid email and password");
@@ -153,21 +168,23 @@ app.post('/register', (req, res) => {
 });
  
 app.post('/login', (req, res) => {
- const userMail = req.body.user-email;
- const userPass = req.body.user-password;
+ const userMail = req.body.email;
+ const userPass = req.body.password;
  
  console.log(`Mail: ${userMail} \n Pass: ${userPass}`);
  
  if (!getUserByEmail(userMail, users)) {
    res.status(403).send("No account with this email has been found.");
- } else {
-   let currentUser = getUserByEmail(userMail, users);
-   console.log("current user: " + currentUser);
+ } else if (getUserByEmail(userMail, users)) {
+   if (!getUserPassword(userPass, users)) {
+     res.status(403).send("Incorrect password.");
+   }
  }
- 
 
- // res.redirect('/login');
+ res.redirect('/urls');
 });
+
+
  
 app.listen(PORT, () => {
  console.log(`Example app listening on port ${PORT}!`);
