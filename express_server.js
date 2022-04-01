@@ -165,6 +165,7 @@ app.post('/login', (req, res) => {
    console.log("current user: " + currentUser);
  }
  
+
  // res.redirect('/login');
 });
  
