@@ -60,6 +60,7 @@ function getUserByEmail(userEmail, data) {
 
  function getUserPassword(userPass, data) {
    for (const j in data) {
+     console.log(data[j].password);
      if (data[j].password === userPass) {
        return data[j].password;
      }
@@ -171,17 +172,24 @@ app.post('/login', (req, res) => {
  const userMail = req.body.email;
  const userPass = req.body.password;
  
- console.log(`Mail: ${userMail} \n Pass: ${userPass}`);
  
+ console.log(`Mail: ${userMail} \n Pass: ${userPass}`);
+ console.log(`user by email: ${getUserByEmail(userMail, users)}`);
+
  if (!getUserByEmail(userMail, users)) {
    res.status(403).send("No account with this email has been found.");
- } else if (getUserByEmail(userMail, users)) {
-   if (!getUserPassword(userPass, users)) {
-     res.status(403).send("Incorrect password.");
+ } else {
+   const userID = getUserByEmail(userMail, users);
+   if (!bcrypt.compareSync(userPass, users[userID].password)) {
+    res.status(403).send(incorrect password);
+   } else {
+     req.session.userID = userID;
+     res.redirect("/urls");
    }
- }
 
- res.redirect('/urls');
+
+   res.redirect("/urls");
+ }
 });
 
 
