@@ -1,4 +1,5 @@
 const express = require("express");
+const { getUserByEmail, getUserPassword, getUserByID, generateRandomString, urlsForUser } = require("./helpers");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
@@ -10,9 +11,20 @@ const { addListener } = require("nodemon");
 app.set("view engine", "ejs");
  
 const urlDatabase = {
- "b2xVn2": "http://lighthouselabs.ca",
- "9sm5xK": "http://google.com",
- "S152tx": "https://www.tsn.ca",
+ "b2xVn2": {
+   longURL: "http://lighthouselabs.ca",
+   userID: "aJ48lW"
+ },
+
+ "9sm5xK": {
+   longURL: "http://google.com",
+   userID: "aGxN2r"
+ },
+
+ "S152tx": {
+   longURL: "https://www.tsn.ca",
+   userID: "6JxwVp"
+ },
 };
  
 const users = {
@@ -27,7 +39,7 @@ const users = {
    password: "dishwasher-funk"
  }
 };
- 
+
 app.use(cookieSession({
  name: 'session',
  keys: ['BOBDONALD'],
@@ -35,39 +47,6 @@ app.use(cookieSession({
  // Cookie Options
  maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }))
- 
-function generateRandomString(inp) {
- let check = inp;
- let potentialChars = "abcdefghij1234567890klmnopqrstuvwxyz1234567890";
- let str = "";
- let max = potentialChars.length;
-  while (inp > 0) {
-   let spot = Math.floor(Math.random() * max);
-   str += potentialChars[spot];
-   inp--;
- }
- return (check > 0 ? str : "Invalid string length");
-};
- 
-function getUserByEmail(userEmail, data) {
-  for (const i in data) {
-    if (data[i].email === userEmail) {
-      return data[i].email;
-    }
-  }
-  return false;
- };
-
- function getUserPassword(userPass, data) {
-   for (const j in data) {
-     console.log(data[j].password);
-     if (data[j].password === userPass) {
-       return data[j].password;
-     }
-   }
-   return false;
- } 
-  
  
 app.get("/", (req, res) => {
  res.send("Hello!");
@@ -116,12 +95,13 @@ app.get("/urls", (req, res) => {
  
 app.get("/urls/:shortURL", (req, res) => {
  
- console.log(urlDatabase);
  const shortURL = req.params.shortURL;
- const longURL = urlDatabase[shortURL];
+ const longURL = urlDatabase[req.params.shortURL].longURL;
+
  const templateVars = {
    shortURL, longURL
  };
+
  res.render("urls_show", templateVars);
 });
  
@@ -171,29 +151,25 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
  const userMail = req.body.email;
  const userPass = req.body.password;
- 
- 
- console.log(`Mail: ${userMail} \n Pass: ${userPass}`);
- console.log(`user by email: ${getUserByEmail(userMail, users)}`);
+ const storedID = getUserByID(userMail, users);
+ const storedPass = getUserPassword(userMail, users);
+
+//  console.log(`Mail: ${userMail} \n Pass: ${userPass}`);
+//  console.log(`user by email: ${getUserByEmail(userMail, users)}`);
 
  if (!getUserByEmail(userMail, users)) {
    res.status(403).send("No account with this email has been found.");
  } else {
-   const userID = getUserByEmail(userMail, users);
-   if (!bcrypt.compareSync(userPass, users[userID].password)) {
-    res.status(403).send(incorrect password);
+   if (storedPass !== userPass) {
+     res.status(403).send("Incorrect password.");
    } else {
-     req.session.userID = userID;
      res.redirect("/urls");
    }
-
-
-   res.redirect("/urls");
+   
  }
+ 
 });
 
-
- 
 app.listen(PORT, () => {
  console.log(`Example app listening on port ${PORT}!`);
 });
