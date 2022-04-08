@@ -4,9 +4,10 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-const cookieSession = require('cookie-session');
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 const { addListener } = require("nodemon");
+const { cookie } = require("express/lib/response");
  
 app.set("view engine", "ejs");
  
@@ -49,7 +50,11 @@ app.use(cookieSession({
 }))
  
 app.get("/", (req, res) => {
- res.send("Hello!");
+  if (req.session.userID) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
  
 app.get("/urls/new", (req, res) => {
@@ -69,7 +74,6 @@ app.get("/register", (req, res) => {
  const newUserEmail = req.body.newUser;
  const newUserPass = req.body.newPass;
 
-
  if (!newUserEmail || !newUserPass) {
    res.status(400).send("Invalid email and/or password.");
  } else if (checkUserByEmail(newUserEmail, urlDatabase)) {
@@ -80,7 +84,7 @@ app.get("/register", (req, res) => {
    }
    res.render("urls_register");
   }
- })
+ });
  
 app.get('/login', (req, res) => {
  let userCheck = req.session.userID;
@@ -132,17 +136,19 @@ app.post('/urls/:shortURL', (req, res) => {
  
 app.post('/register', (req, res) => {
  const newUserEmail = req.body.newUser;
+//  console.log(newUserEmail);
  const newUserPass = req.body.newPass;
 
  let userID = generateRandomString(6);
-  if (!newEmail || !newPassword) {
+  if (!newUserEmail || !newUserPass) {
    res.status(400).send("Enter a valid email and password");
- } else if (newEmail && newPassword) {
-   users[newUser] = {
+ } else if (newUserEmail && newUserPass) {
+   users[userID] = {
      id: userID,
-     email: newEmail,
-     password: 'password'
-   }
+     email: newUserEmail,
+     password: bcrypt.hashSync(newUserPass, 15),
+   };
+   
    req.session.currentUser = userID;
    res.redirect('/urls');
  }
@@ -151,23 +157,17 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
  const userMail = req.body.email;
  const userPass = req.body.password;
- const storedID = getUserByID(userMail, users);
- const storedPass = getUserPassword(userMail, users);
-
-//  console.log(`Mail: ${userMail} \n Pass: ${userPass}`);
-//  console.log(`user by email: ${getUserByEmail(userMail, users)}`);
-
+ const storedUser = getUserByEmail(userMail, users);
+ 
  if (!getUserByEmail(userMail, users)) {
    res.status(403).send("No account with this email has been found.");
  } else {
-   if (storedPass !== userPass) {
+   if (storedUser.password !== userPass) {
      res.status(403).send("Incorrect password.");
    } else {
      res.redirect("/urls");
-   }
-   
- }
- 
+   } 
+  }
 });
 
 app.listen(PORT, () => {

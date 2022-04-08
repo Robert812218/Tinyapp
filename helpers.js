@@ -1,7 +1,7 @@
 const getUserByEmail = function(userEmail, data) {
   for (const i in data) {
     if (data[i].email === userEmail) {
-      return data[i].email;
+      return data[i];
     }
   }
   return false;
@@ -38,7 +38,8 @@ function generateRandomString(inp) {
 
 function urlsForUser(data) {
   const user = req.session.userID;
-  console.log(user);
+  
+  
 }
 
 module.exports = {
