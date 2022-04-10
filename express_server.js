@@ -1,5 +1,5 @@
 const express = require("express");
-const { getUserByEmail, getUserPassword, getUserByID, generateRandomString, urlsForUser } = require("./helpers");
+const { getUserByEmail, getUserPassword, getUserByID, generateRandomString, urlsForUser, cookieCheck } = require("./helpers");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
@@ -58,6 +58,9 @@ app.get("/", (req, res) => {
 });
  
 app.get("/urls/new", (req, res) => {
+ if (cookieCheck(req.session.currentUser, users));
+ 
+
  res.render("urls_new");
 });
  
@@ -71,37 +74,30 @@ app.get("/hello", (req, res) => {
  
 app.get("/register", (req, res) => {
   res.render("urls_register");
- const newUserEmail = req.body.newUser;
- const newUserPass = req.body.newPass;
-
- if (!newUserEmail || !newUserPass) {
-   res.status(400).send("Invalid email and/or password.");
- } else if (checkUserByEmail(newUserEmail, urlDatabase)) {
-   res.status(403).send("User already exists");
- } else {
-   let templateVars = {
-     user: users[req.session.userID],
-   }
-   res.render("urls_register");
-  }
- });
+});
  
 app.get('/login', (req, res) => {
- let userCheck = req.session.userID;
+ let userCheck = req.session.currentUser;
  const templateVars = { urls: urlDatabase };
  res.render("urls_login");
 });
  
 app.get("/urls", (req, res) => {
- const templateVars = { urls: urlDatabase };
- res.render("urls_index", templateVars);
+
+  if (cookieCheck(req.session.currentUser, users)) {
+    const templateVars = { urls: urlDatabase };
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/login");
+  }
+  
 });
  
 app.get("/urls/:shortURL", (req, res) => {
  
  const shortURL = req.params.shortURL;
- const longURL = urlDatabase[req.params.shortURL].longURL;
-
+ const longURL = urlDatabase[shortURL].longURL;
+ console.log(`shortURL: ${shortURL} \n longURL: ${longURL}`);
  const templateVars = {
    shortURL, longURL
  };
@@ -112,7 +108,9 @@ app.get("/urls/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
  const str = generateRandomString(6);
  const { longURL } = req.body;
- urlDatabase[str] = longURL;
+  urlDatabase[str] = { longURL,
+      userID: req.session.currentUser,
+};
  res.redirect(`/urls/${str}`);
 });
  
@@ -130,13 +128,15 @@ app.post('/urls/:shortURL', (req, res) => {
  const shortID = req.params.shortURL;
  const longID = req.body.url;
  
- urlDatabase[shortID] = longID;
+  urlDatabase[shortID] = { 
+    longURL: longID,
+    userID: req.session.currentUser,
+  };
   res.redirect('/urls');
 });
  
 app.post('/register', (req, res) => {
  const newUserEmail = req.body.newUser;
-//  console.log(newUserEmail);
  const newUserPass = req.body.newPass;
 
  let userID = generateRandomString(6);
@@ -151,7 +151,7 @@ app.post('/register', (req, res) => {
    
    req.session.currentUser = userID;
    res.redirect('/urls');
- }
+  }
 });
  
 app.post('/login', (req, res) => {
@@ -173,5 +173,3 @@ app.post('/login', (req, res) => {
 app.listen(PORT, () => {
  console.log(`Example app listening on port ${PORT}!`);
 });
- 
- 

@@ -38,8 +38,24 @@ function generateRandomString(inp) {
 
 function urlsForUser(data) {
   const user = req.session.userID;
-  
-  
+  for (const ident in urlDatabase) {
+    if (ident === user) {
+      return true;
+    }
+  }
+  return false;
+};
+
+function cookieCheck(cookie, data) {
+  for (const i in data) {
+    console.log(i);
+    console.log(`cookie: ${cookie}`);
+    if (i === cookie) {
+      
+      return true;
+    }
+  }
+  return false;
 }
 
 module.exports = {
@@ -47,5 +63,6 @@ module.exports = {
   getUserPassword,
   getUserByID,
   generateRandomString,
-  urlsForUser
+  urlsForUser,
+  cookieCheck
 }
