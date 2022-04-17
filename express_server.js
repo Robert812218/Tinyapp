@@ -73,13 +73,21 @@ app.get("/hello", (req, res) => {
 });
  
 app.get("/register", (req, res) => {
-  res.render("urls_register");
+  if (req.session.userID) {
+    res.redirect("/urls");
+  } else {
+    res.render("urls_register");
+  }
 });
  
 app.get('/login', (req, res) => {
- let userCheck = req.session.currentUser;
- const templateVars = { urls: urlDatabase };
- res.render("urls_login");
+  if (req.session.userID) {
+    res.redirect("/urls");
+  } else {
+    let userCheck = req.session.currentUser;
+    const templateVars = { urls: urlDatabase };
+    res.render("urls_login");
+  }
 });
  
 app.get("/urls", (req, res) => {
@@ -162,7 +170,9 @@ app.post('/login', (req, res) => {
  if (!getUserByEmail(userMail, users)) {
    res.status(403).send("No account with this email has been found.");
  } else {
+   // bcrypt.compare()
    if (storedUser.password !== userPass) {
+     // decrypt storedUser, then compare to userPass
      res.status(403).send("Incorrect password.");
    } else {
      res.redirect("/urls");
