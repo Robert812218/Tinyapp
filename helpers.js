@@ -5,7 +5,7 @@ const getUserByEmail = function(userEmail, data) {
     }
   }
   return false;
- };
+};
 
 const getUserByID = function(userEmail, data) {
    for (const i in data) {
@@ -13,7 +13,7 @@ const getUserByID = function(userEmail, data) {
        return data[i].id;
      }
    }
- }
+};
 
 const getUserPassword = function(userEmail, data) {
    for (const j in data) {
@@ -21,13 +21,13 @@ const getUserPassword = function(userEmail, data) {
        return data[j].password;
      }
    }
-}
+};
 
 function generateRandomString(inp) {
-  let check = inp;
-  let potentialChars = "abcdefghij1234567890klmnopqrstuvwxyz1234567890";
+  const check = inp;
+  const potentialChars = "abcdefghij1234567890klmnopqrstuvwxyz1234567890";
   let str = "";
-  let max = potentialChars.length;
+  const max = potentialChars.length;
    while (inp > 0) {
     let spot = Math.floor(Math.random() * max);
     str += potentialChars[spot];
